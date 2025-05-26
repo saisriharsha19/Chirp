@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chirp - Lightweight Twitter Clone</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #f5f8fa;
+            color: #14171a;
+            line-height: 1.3125;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: white;
+            min-height: 100vh;
+            border-left: 1px solid #e1e8ed;
+            border-right: 1px solid #e1e8ed;
+        }
+        
+        .header {
+            position: sticky;
+            top: 0;
+            background-color: white;
+            border-bottom: 1px solid #e1e8ed;
+            padding: 16px;
+            z-index: 100;
+        }
+        
+        .nav {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 10px;
+        }
+        
+        .nav button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            color: #657786;
+            padding: 8px 12px;
+            border-radius: 20px;
+            transition: background-color 0.2s;
+        }
+        
+        .nav button:hover {
+            background-color: #f5f8fa;
+        }
+        
+        .nav button.active {
+            color: #1da1f2;
+            font-weight: bold;
+        }
+        
+        .tweet-form {
+            padding: 16px;
+            border-bottom: 10px solid #e1e8ed;
+        }
+        
+        .tweet-input {
+            width: 100%;
+            border: none;
+            font-size: 19px;
+            resize: none;
+            outline: none;
+            padding: 12px 0;
+            font-family: inherit;
+        }
+        
+        .tweet-options {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 12px;
+        }
+        
+        .tweet-options label {
+            font-size: 14px;
+            color: #657786;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .tweet-options input[type="checkbox"] {
+            cursor: pointer;
+        }
+        
+        .tweet-button {
+            background-color: #1da1f2;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 15px;
+            transition: background-color 0.2s;
+        }
+        
+        .tweet-button:hover {
+            background-color: #1a91da;
+        }
+        
+        .tweet-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .tweets-container {
+            padding: 0;
+        }
+        
+        .tweet {
+            padding: 16px;
+            border-bottom: 1px solid #e1e8ed;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .tweet:hover {
+            background-color: #f5f8fa;
+        }
+        .tweet-comments {
+            margin-top: 8px;
+            padding-left: 10px;
+            border-left: 2px solid #e1e8ed;
+            font-size: 14px;
+            color: #14171a;
+        }
+
+        .tweet-comment {
+            background-color: #f5f8fa;
+            padding: 8px 12px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            border-left: 3px solid #1da1f2;
+        }
+
+        .tweet-comment-author {
+            font-weight: bold;
+            color: #1da1f2;
+            margin-right: 6px;
+        }
+
+        .tweet-comment-time {
+            font-size: 12px;
+            color: #657786;
+        }
+
+        .tweet-comment-content {
+            margin-top: 4px;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .tweet-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+        
+        .tweet-author {
+            font-weight: bold;
+            color: #14171a;
+        }
+        
+        .tweet-time {
+            color: #657786;
+            font-size: 14px;
+        }
+        
+        .tweet-content {
+            margin-bottom: 12px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        .tweet-actions {
+            display: flex;
+            gap: 40px;
+        }
+        
+        .tweet-action {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #657786;
+            font-size: 13px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: color 0.2s, background-color 0.2s;
+        }
+        
+        .tweet-action:hover {
+            background-color: #e8f5fd;
+            color: #1da1f2;
+        }
+        
+        .tweet-action.liked {
+            color: #e0245e;
+        }
+        
+        .tweet-action.bookmarked {
+            color: #1da1f2;
+        }
+        
+        .mood-indicator {
+            display: inline-block;
+            font-size: 12px;
+            padding: 2px 8px;
+            border-radius: 12px;
+            margin-left: 8px;
+        }
+        
+        .mood-happy { background-color: #ffeb3b; color: #333; }
+        .mood-sad { background-color: #9e9e9e; color: white; }
+        .mood-excited { background-color: #ff5722; color: white; }
+        .mood-neutral { background-color: #e0e0e0; color: #333; }
+        
+        .sentiment-badge {
+            display: inline-block;
+            font-size: 11px;
+            padding: 2px 6px;
+            border-radius: 8px;
+            margin-left: 8px;
+        }
+        
+        .sentiment-positive { background-color: #4caf50; color: white; }
+        .sentiment-negative { background-color: #f44336; color: white; }
+        .sentiment-neutral { background-color: #9e9e9e; color: white; }
+        
+        .ephemeral-indicator {
+            display: inline-block;
+            font-size: 11px;
+            color: #ff5722;
+            margin-left: 8px;
+        }
+        
+        .verified-badge {
+            color: #1da1f2;
+            font-size: 16px;
+            margin-left: 4px;
+        }
+        
+        .auth-form {
+            padding: 40px;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        
+        .auth-form h2 {
+            margin-bottom: 24px;
+            text-align: center;
+        }
+        
+        .auth-form input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 16px;
+            border: 1px solid #e1e8ed;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        
+        .auth-form button {
+            width: 100%;
+            padding: 12px;
+            background-color: #1da1f2;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .auth-form button:hover {
+            background-color: #1a91da;
+        }
+        
+        .auth-switch {
+            text-align: center;
+            margin-top: 16px;
+            color: #657786;
+        }
+        
+        .auth-switch a {
+            color: #1da1f2;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        
+        .user-info {
+            padding: 16px;
+            border-bottom: 1px solid #e1e8ed;
+            background-color: #f5f8fa;
+        }
+        
+        .user-stats {
+            display: flex;
+            gap: 20px;
+            margin-top: 8px;
+            font-size: 14px;
+        }
+        
+        .user-stats span {
+            color: #657786;
+        }
+        
+        .user-stats strong {
+            color: #14171a;
+        }
+        
+        .trending-section {
+            padding: 16px;
+            background-color: #f5f8fa;
+            margin: 16px;
+            border-radius: 8px;
+        }
+        
+        .trending-section h3 {
+            margin-bottom: 12px;
+            font-size: 18px;
+        }
+        
+        .trending-item {
+            padding: 8px 0;
+            border-bottom: 1px solid #e1e8ed;
+            font-size: 14px;
+        }
+        
+        .trending-item:last-child {
+            border-bottom: none;
+        }
+        
+        .search-box {
+            padding: 8px 16px;
+            width: 100%;
+            border: 1px solid #e1e8ed;
+            border-radius: 20px;
+            font-size: 14px;
+            outline: none;
+            margin-bottom: 16px;
+        }
+        
+        .search-results {
+            padding: 16px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #657786;
+        }
+        
+        .error {
+            background-color: #ffebee;
+            color: #c62828;
+            padding: 12px;
+            border-radius: 4px;
+            margin: 16px;
+        }
+        
+        .success {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+            padding: 12px;
+            border-radius: 4px;
+            margin: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="app"></div>
+    </div>
+
+    <script>
+        // Lightweight Twitter Clone Frontend
+        const API_URL = 'http://localhost:8000/api';
+        let currentUser = null;
+        let authToken = localStorage.getItem('authToken');
+        let currentView = 'home';
+
+        // Utility functions
+        function timeAgo(date) {
+            const seconds = Math.floor((new Date() - new Date(date)) / 1000);
+            if (seconds < 60) return `${seconds}s`;
+            const minutes = Math.floor(seconds / 60);
+            if (minutes < 60) return `${minutes}m`;
+            const hours = Math.floor(minutes / 60);
+            if (hours < 24) return `${hours}h`;
+            const days = Math.floor(hours / 24);
+            return `${days}d`;
+        }
+
+        async function api(endpoint, options = {}) {
+            const headers = {
+                'Content-Type': 'application/json',
+                ...options.headers
+            };
+            
+            if (authToken && !endpoint.includes('register') && !endpoint.includes('login')) {
+                headers['Authorization'] = authToken;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}${endpoint}`, {
+                    ...options,
+                    headers
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'API Error');
+                }
+
+                return await response.json();
+            } catch (error) {
+                console.error('API Error:', error);
+                showError(error.message);
+                throw error;
+            }
+        }
+
+        function showError(message) {
+            const app = document.getElementById('app');
+            const error = document.createElement('div');
+            error.className = 'error';
+            error.textContent = message;
+            app.insertBefore(error, app.firstChild);
+            setTimeout(() => error.remove(), 5000);
+        }
+
+        function showSuccess(message) {
+            const app = document.getElementById('app');
+            const success = document.createElement('div');
+            success.className = 'success';
+            success.textContent = message;
+            app.insertBefore(success, app.firstChild);
+            setTimeout(() => success.remove(), 3000);
+        }
+
+        // Auth functions
+        async function login(username, password) {
+            try {
+                const data = await api('/login', {
+                    method: 'POST',
+                    body: JSON.stringify({ username, password })
+                });
+                authToken = data.access_token;
+                localStorage.setItem('authToken', authToken);
+                localStorage.setItem('userId', data.user_id);
+                currentUser = { id: data.user_id, username };
+                showHome();
+            } catch (error) {
+                console.error('Login failed:', error);
+            }
+        }
+
+        async function register(username, email, password, bio = '') {
+            try {
+                const data = await api('/register', {
+                    method: 'POST',
+                    body: JSON.stringify({ username, email, password, bio })
+                });
+                authToken = data.access_token;
+                localStorage.setItem('authToken', authToken);
+                localStorage.setItem('userId', data.user_id);
+                currentUser = { id: data.user_id, username };
+                showHome();
+            } catch (error) {
+                console.error('Registration failed:', error);
+            }
+        }
+
+        function logout() {
+            authToken = null;
+            currentUser = null;
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('userId');
+            showAuth();
+        }
+
+        // Tweet functions
+        async function createTweet(content, isEphemeral = false, ephemeralDuration = 24) {
+            try {
+                await api('/tweet', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        content,
+                        is_ephemeral: isEphemeral,
+                        ephemeral_duration: ephemeralDuration
+                    })
+                });
+                showSuccess('Tweet posted successfully!');
+                loadTweets();
+            } catch (error) {
+                console.error('Failed to create tweet:', error);
+            }
+        }
+
+        async function likeTweet(tweetId) {
+            try {
+                await api(`/tweet/${tweetId}/like`, {
+                    method: 'POST'
+                });
+                loadTweets();
+            } catch (error) {
+                console.error('Failed to like tweet:', error);
+            }
+        }
+
+        async function bookmarkTweet(tweetId) {
+            try {
+                await api(`/tweet/${tweetId}/bookmark`, {
+                    method: 'POST'
+                });
+                showSuccess('Tweet bookmarked!');
+            } catch (error) {
+                console.error('Failed to bookmark tweet:', error);
+            }
+        }
+
+        async function followUser(userId) {
+            try {
+                await api(`/user/${userId}/follow`, {
+                    method: 'POST'
+                });
+                showSuccess('Follow status updated!');
+            } catch (error) {
+                console.error('Failed to follow user:', error);
+            }
+        }
+
+        // View functions
+        function showAuth() {
+            const app = document.getElementById('app');
+            app.innerHTML = `
+                <div class="auth-form">
+                    <h2 id="auth-title">Login to Chirp</h2>
+                    <form id="auth-form">
+                        <input type="text" id="username" placeholder="Username" required>
+                        <input type="email" id="email" placeholder="Email" style="display:none;">
+                        <input type="password" id="password" placeholder="Password" required>
+                        <textarea id="bio" placeholder="Bio (optional)" style="display:none; width:100%; padding:12px; margin-bottom:16px; border:1px solid #e1e8ed; border-radius:4px; font-size:16px; resize:none;"></textarea>
+                        <button type="submit" id="auth-submit">Login</button>
+                    </form>
+                    <div class="auth-switch">
+                        <span id="auth-switch-text">Don't have an account? </span>
+                        <a href="#" id="auth-switch-link">Sign up</a>
+                    </div>
+                </div>
+            `;
+
+            let isLogin = true;
+            const form = document.getElementById('auth-form');
+            const title = document.getElementById('auth-title');
+            const submitBtn = document.getElementById('auth-submit');
+            const switchText = document.getElementById('auth-switch-text');
+            const switchLink = document.getElementById('auth-switch-link');
+            const emailField = document.getElementById('email');
+            const bioField = document.getElementById('bio');
+
+            switchLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                isLogin = !isLogin;
+                if (isLogin) {
+                    title.textContent = 'Login to Chirp';
+                    submitBtn.textContent = 'Login';
+                    switchText.textContent = "Don't have an account? ";
+                    switchLink.textContent = 'Sign up';
+                    emailField.style.display = 'none';
+                    bioField.style.display = 'none';
+                } else {
+                    title.textContent = 'Join Chirp Today';
+                    submitBtn.textContent = 'Sign up';
+                    switchText.textContent = 'Already have an account? ';
+                    switchLink.textContent = 'Login';
+                    emailField.style.display = 'block';
+                    bioField.style.display = 'block';
+                }
+            });
+
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const username = document.getElementById('username').value;
+                const password = document.getElementById('password').value;
+                
+                if (isLogin) {
+                    await login(username, password);
+                } else {
+                    const email = document.getElementById('email').value;
+                    const bio = document.getElementById('bio').value;
+                    await register(username, email, password, bio);
+                }
+            });
+        }
+
+        async function showHome() {
+            currentView = 'home';
+            const app = document.getElementById('app');
+            app.innerHTML = `
+                <div class="header">
+                    <div class="nav">
+                        <button class="active" onclick="showHome()">Home</button>
+                        <button onclick="showFeed()">Feed</button>
+                        <button onclick="showTrending()">Trending</button>
+                        <button onclick="showProfile()">Profile</button>
+                        <button onclick="logout()">Logout</button>
+                    </div>
+                    <input type="text" class="search-box" placeholder="Search Chirp..." id="search-input">
+                </div>
+                <div class="tweet-form">
+                    <textarea class="tweet-input" placeholder="What's happening?" id="tweet-input" maxlength="280"></textarea>
+                    <div class="tweet-options">
+                        <div>
+                            <label>
+                                <input type="checkbox" id="ephemeral-check">
+                                Ephemeral (disappears after 24h)
+                            </label>
+                        </div>
+                        <div>
+                            <span id="char-count">280</span>
+                            <button class="tweet-button" id="tweet-btn">Chirp</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="tweets-container" id="tweets-container">
+                    <div class="loading">Loading tweets...</div>
+                </div>
+            `;
+
+            // Set up event listeners
+            const tweetInput = document.getElementById('tweet-input');
+            const charCount = document.getElementById('char-count');
+            const tweetBtn = document.getElementById('tweet-btn');
+            const searchInput = document.getElementById('search-input');
+
+            tweetInput.addEventListener('input', () => {
+                const remaining = 280 - tweetInput.value.length;
+                charCount.textContent = remaining;
+                charCount.style.color = remaining < 20 ? '#e0245e' : '#657786';
+                tweetBtn.disabled = tweetInput.value.trim().length === 0;
+            });
+
+            tweetBtn.addEventListener('click', async () => {
+                const content = tweetInput.value.trim();
+                const isEphemeral = document.getElementById('ephemeral-check').checked;
+                if (content) {
+                    await createTweet(content, isEphemeral);
+                    tweetInput.value = '';
+                    charCount.textContent = '280';
+                    document.getElementById('ephemeral-check').checked = false;
+                }
+            });
+
+            searchInput.addEventListener('keypress', async (e) => {
+                if (e.key === 'Enter' && e.target.value.trim()) {
+                    await showSearch(e.target.value.trim());
+                }
+            });
+
+            await loadTweets();
+        }
+
+        async function loadTweets() {
+            try {
+                const tweets = await api('/tweets?limit=50');
+                displayTweets(tweets);
+            } catch (error) {
+                console.error('Failed to load tweets:', error);
+            }
+        }
+
+        function displayTweets(tweets) {
+            const container = document.getElementById('tweets-container');
+            if (!tweets || tweets.length === 0) {
+                container.innerHTML = '<div class="loading">No tweets yet. Be the first to chirp!</div>';
+                return;
+            }
+
+            container.innerHTML = tweets.map(tweet => `
+                <div class="tweet" data-id="${tweet.id}">
+                    <div class="tweet-header">
+                        <span class="tweet-author" onclick="showUserProfile(${tweet.author_id})">${tweet.author}</span>
+                        ${tweet.is_verified ? '<span class="verified-badge">✓</span>' : ''}
+                        <span class="sentiment-badge sentiment-${tweet.sentiment}">${tweet.sentiment}</span>
+                        ${tweet.is_ephemeral ? '<span class="ephemeral-indicator">⏱ Ephemeral</span>' : ''}
+                        <span class="tweet-time">${timeAgo(tweet.created_at)}</span>
+                    </div>
+                    <div class="tweet-content">${escapeHtml(tweet.content)}</div>
+                    <div class="tweet-actions">
+                        <button class="tweet-action" onclick="toggleCommentsAndInput(${tweet.id})">
+                            💬 ${tweet.comments_count || 0}
+                        </button>
+                        <button class="tweet-action ${tweet.is_liked ? 'liked' : ''}" onclick="likeTweet(${tweet.id})">
+                            ❤️ ${tweet.likes_count || 0}
+                        </button>
+                        <button class="tweet-action" onclick="bookmarkTweet(${tweet.id})">
+                            🔖 Bookmark
+                        </button>
+                    </div>
+                    <div class="comment-box" id="comment-box-${tweet.id}" style="display:none; margin-top:10px;">
+                        <input type="text" id="comment-input-${tweet.id}" placeholder="Write a comment..." style="width:80%; padding:5px;">
+                        <button onclick="postComment(${tweet.id})" style="padding:6px 12px;">Post</button>
+                    </div>
+                    <div class="tweet-comments" id="tweet-comments-${tweet.id}" style="display:none; margin-top:10px;"></div>
+                </div>
+            `).join('');
+        }
+
+        async function showFeed() {
+            currentView = 'feed';
+            const container = document.getElementById('tweets-container');
+            container.innerHTML = '<div class="loading">Loading your feed...</div>';
+            
+            try {
+                const tweets = await api('/feed');
+                displayTweets(tweets);
+            } catch (error) {
+                console.error('Failed to load feed:', error);
+            }
+        }
+
+        function toggleCommentBox(tweetId) {
+            const box = document.getElementById(`comment-box-${tweetId}`);
+            box.style.display = box.style.display === 'none' ? 'block' : 'none';
+        }
+
+        async function postComment(tweetId) {
+            const input = document.getElementById(`comment-input-${tweetId}`);
+            const content = input.value.trim();
+            if (!content) return;
+
+            try {
+                await api('/comment', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        tweet_id: tweetId,
+                        content: content
+                    })
+                });
+                input.value = '';
+                showSuccess('Comment posted!');
+                await loadTweets(); // Refresh tweet list to update comment count
+            } catch (error) {
+                console.error('Failed to post comment:', error);
+            }
+        }
+
+        async function showTrending() {
+            currentView = 'trending';
+            const app = document.getElementById('app');
+            
+            try {
+                const trending = await api('/trending');
+                
+                app.innerHTML = `
+                    <div class="header">
+                        <div class="nav">
+                            <button onclick="showHome()">Home</button>
+                            <button onclick="showFeed()">Feed</button>
+                            <button class="active" onclick="showTrending()">Trending</button>
+                            <button onclick="showProfile()">Profile</button>
+                            <button onclick="logout()">Logout</button>
+                        </div>
+                    </div>
+                    <div class="trending-section">
+                        <h3>🔥 Trending Now</h3>
+                        ${trending.map(item => `
+                            <div class="trending-item">
+                                <div style="font-weight: bold;">${escapeHtml(item.author)}</div>
+                                <div style="margin: 4px 0;">${escapeHtml(item.content.substring(0, 100))}...</div>
+                                <div style="color: #657786; font-size: 12px;">
+                                    Engagement: ${item.engagement}
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Failed to load trending:', error);
+            }
+        }
+
+        async function showProfile() {
+            const userId = localStorage.getItem('userId');
+            await showUserProfile(userId);
+        }
+
+        async function showUserProfile(userId) {
+            currentView = 'profile';
+            const app = document.getElementById('app');
+            
+            try {
+                const user = await api(`/user/${userId}`);
+                const tweets = await api(`/user/${userId}/tweets`);
+                
+                app.innerHTML = `
+                    <div class="header">
+                        <div class="nav">
+                            <button onclick="showHome()">Home</button>
+                            <button onclick="showFeed()">Feed</button>
+                            <button onclick="showTrending()">Trending</button>
+                            <button ${userId == localStorage.getItem('userId') ? 'class="active"' : ''} onclick="showProfile()">Profile</button>
+                            <button onclick="logout()">Logout</button>
+                        </div>
+                    </div>
+                    <div class="user-info">
+                        <h2>${user.username} ${user.is_verified ? '<span class="verified-badge">✓</span>' : ''}</h2>
+                        <p>${user.bio || 'No bio yet'}</p>
+                        <div class="mood-indicator mood-${user.mood}">${user.mood}</div>
+                        <div class="user-stats">
+                            <div><strong>${tweets.length}</strong> <span>Tweets</span></div>
+                            <div><strong>${user.followers_count}</strong> <span>Followers</span></div>
+                            <div><strong>${user.following_count}</strong> <span>Following</span></div>
+                            <div><strong>${user.activity_score.toFixed(1)}</strong> <span>Activity Score</span></div>
+                        </div>
+                        ${userId != localStorage.getItem('userId') ? 
+                            `<button class="tweet-button" style="margin-top: 12px;" onclick="followUser(${userId})">Follow</button>` : 
+                            ''}
+                    </div>
+                    <div class="tweets-container">
+                        ${tweets.map(tweet => `
+                            <div class="tweet">
+                                <div class="tweet-header">
+                                    <span class="tweet-author">${user.username}</span>
+                                    <span class="sentiment-badge sentiment-${tweet.sentiment}">${tweet.sentiment}</span>
+                                    <span class="tweet-time">${timeAgo(tweet.created_at)}</span>
+                                </div>
+                                <div class="tweet-content">${escapeHtml(tweet.content)}</div>
+                                <div class="tweet-actions">
+                                    <button class="tweet-action">
+                                        💬 ${tweet.comments_count || 0}
+                                    </button>
+                                    <button class="tweet-action">
+                                        ❤️ ${tweet.likes_count || 0}
+                                    </button>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Failed to load profile:', error);
+            }
+        }
+
+        async function showSearch(query) {
+            const container = document.getElementById('tweets-container');
+            container.innerHTML = '<div class="loading">Searching...</div>';
+            
+            try {
+                const results = await api(`/search?q=${encodeURIComponent(query)}`);
+                
+                container.innerHTML = `
+                    <div class="search-results">
+                        <h3>Users</h3>
+                        ${results.users.length > 0 ? results.users.map(user => `
+                            <div class="tweet" onclick="showUserProfile(${user.id})">
+                                <strong>${user.username}</strong> ${user.is_verified ? '<span class="verified-badge">✓</span>' : ''}
+                                <p>${user.bio || 'No bio'}</p>
+                            </div>
+                        `).join('') : '<p>No users found</p>'}
+                        
+                        <h3 style="margin-top: 20px;">Tweets</h3>
+                        <div id="search-tweets"></div>
+                    </div>
+                `;
+                
+                if (results.tweets.length > 0) {
+                    displayTweets(results.tweets);
+                } else {
+                    document.getElementById('search-tweets').innerHTML = '<p>No tweets found</p>';
+                }
+            } catch (error) {
+                console.error('Search failed:', error);
+            }
+        }
+
+        async function showComments(tweetId) {
+            const container = document.getElementById(`tweet-comments-${tweetId}`);
+            if (container.style.display === 'block') {
+                container.style.display = 'none';
+                return;
+            }
+
+            try {
+                const tweet = await api(`/tweet/${tweetId}`);
+                const comments = tweet.comments;
+                if (!comments || comments.length === 0) {
+                    container.innerHTML = '<div style="color:#657786; font-size:14px;">No comments yet</div>';
+                } else {
+                    container.innerHTML = comments.map(c => `
+                        <div class="tweet-comment">
+                            <div>
+                                <span class="tweet-comment-author">${escapeHtml(c.author)}</span>
+                                <span class="tweet-comment-time">${timeAgo(c.created_at)}</span>
+                            </div>
+                            <div class="tweet-comment-content">${escapeHtml(c.content)}</div>
+                        </div>
+                    `).join('');
+
+                }
+                container.style.display = 'block';
+            } catch (error) {
+                console.error('Error loading comments:', error);
+            }
+        }
+
+        function toggleCommentsAndInput(tweetId) {
+            showComments(tweetId);
+            const box = document.getElementById(`comment-box-${tweetId}`);
+            box.style.display = box.style.display === 'none' ? 'block' : 'none';
+        }
+
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Initialize app
+        if (authToken) {
+            showHome();
+        } else {
+            showAuth();
+        }
+    </script>
+</body>
+</html>

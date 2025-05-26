@@ -1,0 +1,16 @@
+fastapi
+uvicorn 
+python-multipart 
+pyjwt
+uvicorn[standard]
+argon2-cffi
+transformers
+sqlalchemy
+numpy
+protobuf
+hf_xet
+sentencepiece
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch
+torchvision 
+torchaudio
